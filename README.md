@@ -167,6 +167,18 @@ The user may specify a set of key/value pairs that are appended to the configura
   }
 });</code></pre>
 
+### Log URL on test failure (optional)
+
+This option will add the URL that a spec failed on to the report
+
+<pre><code>var reporter = new HtmlScreenshotReporter({
+  configurationStrings: {
+    logUrlOnFailure: true
+  }
+});</code></pre>
+
+Default is <code>false</code>
+
 ### Path Builder (optional)
 
 Function used to build custom paths for screenshots. For example:
