@@ -157,20 +157,14 @@ function Jasmine2ScreenShotReporter(opts) {
       '<li><%- reason.message %> [<a href="javascript:showhide(\'<%= id %><%= key %>\')">stack</a>]<br/>' +
       '<span style="display: none" id="<%= id %><%= key %>" class="stacktrace"><%- reason.stack %></span></li>' +
       '<% }); %>' +
-      '<%= failedUrl %>' +
       '</ul>'
   );
 
-
-
   var failUrlTemplate = _.template(
-    '<%= failedUrl %>'
+    '<ul>' +
+    '<li>Failed At Url: <a href="<%= failedUrl %>"><%= failedUrl %></a></li>' +
+    '</ul>'
   );
-
-
-
-
-
 
   var configurationTemplate = _.template(
       '<a href="javascript:showhide(\'<%= configId %>\')">' +
@@ -347,26 +341,22 @@ function Jasmine2ScreenShotReporter(opts) {
 
     return reasonsTemplate({
       id: getUniqueSpecId(spec),
-      failedUrl: getFailUrlHtml(spec.failedAtUrl),
       reasons: spec.failedExpectations
     });
   }
 
   function printFailUrl(spec) {
-    if (spec.status !== 'failed') {
+    if (spec.status !== 'failed' || opts.logUrlOnFailure == false) {
       return '';
     }
 
     return failUrlTemplate({
-      failedUrl: getFailUrlHtml(spec.failedAtUrl),
+      failedUrl: getFailUrlHtml(spec.failedAtUrl)
     });
   }
 
-
-
-
   function getFailUrlHtml(failedUrl){
-    return opts.logUrlOnFailure ? "<li>Failed Url: " + failedUrl + "</li>" : '';
+    return opts.logUrlOnFailure ? failedUrl : '';
   }
 
   function printSpec(spec) {
