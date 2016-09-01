@@ -315,6 +315,7 @@ function Jasmine2ScreenShotReporter(opts) {
   opts.showConfiguration = opts.hasOwnProperty('showConfiguration') ? opts.showConfiguration : true;
   opts.reportTitle = opts.hasOwnProperty('reportTitle') ? opts.reportTitle : 'Report';
   opts.cleanDestination = opts.hasOwnProperty('cleanDestination') ? opts.cleanDestination : true;
+  opts.logUrlOnFailure = opts.hasOwnProperty('logUrlOnFailure') ? opts.logUrlOnFailure : false;
 
   // TODO: proper nesting -> no need for magic
 
@@ -566,11 +567,13 @@ function Jasmine2ScreenShotReporter(opts) {
       });
     });
 
-    if(spec.status == 'failed'){
-      browser.getCurrentUrl().then(function(url){
-      spec.failedAtUrl = url;
-    })
-}
+    if(opts.logUrlOnFailure) {
+      if(spec.status == 'failed'){
+        browser.getCurrentUrl().then(function(url){
+          spec.failedAtUrl = url;
+        })
+      }
+    }
 
   };
 
