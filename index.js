@@ -52,6 +52,7 @@ function Jasmine2ScreenShotReporter(opts) {
       '(<%= duration %> s)' +
       '<%= reason %>' +
       '<%= failUrl %>' +
+      '<%= browserLog %>' +
       '</li>'
   );
 
@@ -66,6 +67,8 @@ function Jasmine2ScreenShotReporter(opts) {
       '<%= name %> ' +
       '(<%= duration %> s)' +
       '<%= reason %>' +
+      '<%= failUrl %>' +
+      '<%= browserLog %>' +
       '</li>'
   );
 
@@ -163,6 +166,13 @@ function Jasmine2ScreenShotReporter(opts) {
   var failUrlTemplate = _.template(
     '<ul>' +
     '<li>Failed At Url: <a href="<%= failedUrl %>"><%= failedUrl %></a></li>' +
+    '</ul>'
+  );
+
+  var browserLogTemplate = _.template(
+    '<ul>' +
+    '<li>Browser Logs - [<a href="javascript:showhide(\'browserLog<%= id %>\')">show logs</a>]</li>' +
+    '<span style="display: none" id="browserLog<%= id %>" class="stacktrace"><%= browserLog %></span></li>' +
     '</ul>'
   );
 
@@ -322,6 +332,7 @@ function Jasmine2ScreenShotReporter(opts) {
   opts.reportTitle = opts.hasOwnProperty('reportTitle') ? opts.reportTitle : 'Report';
   opts.cleanDestination = opts.hasOwnProperty('cleanDestination') ? opts.cleanDestination : true;
   opts.logUrlOnFailure = opts.hasOwnProperty('logUrlOnFailure') ? opts.logUrlOnFailure : false;
+  opts.logBrowserConsoleOnFailure = opts.hasOwnProperty('logBrowserConsoleOnFailure') ? opts.logBrowserConsoleOnFailure : false;
 
   // TODO: proper nesting -> no need for magic
 
@@ -351,12 +362,28 @@ function Jasmine2ScreenShotReporter(opts) {
     }
 
     return failUrlTemplate({
-      failedUrl: getFailUrlHtml(spec.failedAtUrl)
+      failedUrl: getFailUrl(spec.failedAtUrl)
     });
   }
 
-  function getFailUrlHtml(failedUrl){
+  function getFailUrl(failedUrl){
     return opts.logUrlOnFailure ? failedUrl : '';
+  }
+
+
+  function printBrowserLog(spec) {
+    if (spec.status !== 'failed' || opts.logBrowserConsoleOnFailure == false) {
+      return '';
+    }
+
+    return browserLogTemplate({
+      id: getUniqueSpecId(spec),
+      browserLog: getBrowserLog(spec.browserLogs)
+    });
+  }
+
+  function getBrowserLog(browserLogs){
+    return opts.logBrowserConsoleOnFailure ? browserLogs : '';
   }
 
   function printSpec(spec) {
@@ -379,6 +406,7 @@ function Jasmine2ScreenShotReporter(opts) {
       name:     spec.fullName.replace(suiteName, '').trim(),
       reason:   printReasonsForFailure(spec),
       failUrl:  printFailUrl(spec),
+      browserLog: printBrowserLog(spec),
       specId:   spec.id
     });
   }
@@ -585,15 +613,29 @@ function Jasmine2ScreenShotReporter(opts) {
           });
         });
       });
+
+
+      // If failed, check for optional logging of url and browser console
+      if(spec.status == 'failed'){
+        if(opts.logUrlOnFailure) {
+          if(spec.status == 'failed'){
+            browserInstance.getCurrentUrl().then(function(url){
+              spec.failedAtUrl = url;
+            })
+          }
+        }
+
+        if(opts.logBrowserConsoleOnFailure) {
+          spec.browserLogs = [];
+          browserInstance.manage().logs().get('browser').then(function(browserLogs) {
+            spec.browserLogs.push(JSON.stringify(browserLogs, null, 2));
+          });
+        }
+      }
     });
 
-    if(opts.logUrlOnFailure) {
-      if(spec.status == 'failed'){
-        browser.getCurrentUrl().then(function(url){
-          spec.failedAtUrl = url;
-        })
-      }
-    }
+
+
 
   };
 
