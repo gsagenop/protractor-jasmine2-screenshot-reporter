@@ -52,6 +52,7 @@ function Jasmine2ScreenShotReporter(opts) {
       '(<%= duration %> s)' +
       '<%= reason %>' +
       '<%= failUrl %>' +
+      '<%= browserLog %>' +
       '</li>'
   );
 
@@ -66,6 +67,8 @@ function Jasmine2ScreenShotReporter(opts) {
       '<%= name %> ' +
       '(<%= duration %> s)' +
       '<%= reason %>' +
+      '<%= failUrl %>' +
+      '<%= browserLog %>' +
       '</li>'
   );
 
@@ -163,6 +166,12 @@ function Jasmine2ScreenShotReporter(opts) {
   var failUrlTemplate = _.template(
     '<ul>' +
     '<li>Failed At Url: <a href="<%= failedUrl %>"><%= failedUrl %></a></li>' +
+    '</ul>'
+  );
+
+  var browserLogTemplate = _.template(
+    '<ul>' +
+    '<li>Browser Logs: <%= browserLog %></li>' +
     '</ul>'
   );
 
@@ -322,7 +331,7 @@ function Jasmine2ScreenShotReporter(opts) {
   opts.reportTitle = opts.hasOwnProperty('reportTitle') ? opts.reportTitle : 'Report';
   opts.cleanDestination = opts.hasOwnProperty('cleanDestination') ? opts.cleanDestination : true;
   opts.logUrlOnFailure = opts.hasOwnProperty('logUrlOnFailure') ? opts.logUrlOnFailure : false;
-  opts.logConsoleOnFailure = opts.hasOwnProperty('logConsoleOnFailure') ? opts.logConsoleOnFailure : false;
+  opts.logBrowserConsoleOnFailure = opts.hasOwnProperty('logBrowserConsoleOnFailure') ? opts.logBrowserConsoleOnFailure : false;
 
   // TODO: proper nesting -> no need for magic
 
@@ -352,12 +361,27 @@ function Jasmine2ScreenShotReporter(opts) {
     }
 
     return failUrlTemplate({
-      failedUrl: getFailUrlHtml(spec.failedAtUrl)
+      failedUrl: getFailUrl(spec.failedAtUrl)
     });
   }
 
-  function getFailUrlHtml(failedUrl){
+  function getFailUrl(failedUrl){
     return opts.logUrlOnFailure ? failedUrl : '';
+  }
+
+
+  function printBrowserLog(spec) {
+    if (spec.status !== 'failed' || opts.logBrowserConsoleOnFailure == false) {
+      return '';
+    }
+
+    return browserLogTemplate({
+      browserLog: getBrowserLog(spec.browserLogs)
+    });
+  }
+
+  function getBrowserLog(browserLogs){
+    return opts.logBrowserConsoleOnFailure ? browserLogs : '';
   }
 
   function printSpec(spec) {
@@ -380,6 +404,7 @@ function Jasmine2ScreenShotReporter(opts) {
       name:     spec.fullName.replace(suiteName, '').trim(),
       reason:   printReasonsForFailure(spec),
       failUrl:  printFailUrl(spec),
+      browserLog: printBrowserLog(spec),
       specId:   spec.id
     });
   }
@@ -598,7 +623,7 @@ function Jasmine2ScreenShotReporter(opts) {
           }
         }
 
-        if(opts.logConsoleOnFailure) {
+        if(opts.logBrowserConsoleOnFailure) {
           browserInstance.manage().logs().get('browser').then(function(browserLogs) {
             // console.log('Logs here: ' + browserLogs);
             // browserLogs is an array of objects with level and message fields
