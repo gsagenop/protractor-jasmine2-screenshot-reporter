@@ -51,6 +51,7 @@ function Jasmine2ScreenShotReporter(opts) {
       '<% } }) %>' +
       '(<%= duration %> s)' +
       '<%= reason %>' +
+      '<%= failUrl %>' +
       '</li>'
   );
 
@@ -159,6 +160,17 @@ function Jasmine2ScreenShotReporter(opts) {
       '<%= failedUrl %>' +
       '</ul>'
   );
+
+
+
+  var failUrlTemplate = _.template(
+    '<%= failedUrl %>'
+  );
+
+
+
+
+
 
   var configurationTemplate = _.template(
       '<a href="javascript:showhide(\'<%= configId %>\')">' +
@@ -340,6 +352,19 @@ function Jasmine2ScreenShotReporter(opts) {
     });
   }
 
+  function printFailUrl(spec) {
+    if (spec.status !== 'failed') {
+      return '';
+    }
+
+    return failUrlTemplate({
+      failedUrl: getFailUrlHtml(spec.failedAtUrl),
+    });
+  }
+
+
+
+
   function getFailUrlHtml(failedUrl){
     return opts.logUrlOnFailure ? "<li>Failed Url: " + failedUrl + "</li>" : '';
   }
@@ -363,6 +388,7 @@ function Jasmine2ScreenShotReporter(opts) {
       mark:     marks[spec.status],
       name:     spec.fullName.replace(suiteName, '').trim(),
       reason:   printReasonsForFailure(spec),
+      failUrl:  printFailUrl(spec),
       specId:   spec.id
     });
   }
