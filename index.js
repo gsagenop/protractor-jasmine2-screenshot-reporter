@@ -156,7 +156,7 @@ function Jasmine2ScreenShotReporter(opts) {
       '<li><%- reason.message %> [<a href="javascript:showhide(\'<%= id %><%= key %>\')">stack</a>]<br/>' +
       '<span style="display: none" id="<%= id %><%= key %>" class="stacktrace"><%- reason.stack %></span></li>' +
       '<% }); %>' +
-      '<li>Failed Url: <%- failedUrl %></li>' +
+      '<%= failedUrl %>' +
       '</ul>'
   );
 
@@ -335,9 +335,13 @@ function Jasmine2ScreenShotReporter(opts) {
 
     return reasonsTemplate({
       id: getUniqueSpecId(spec),
-      failedUrl: spec.failedAtUrl,
+      failedUrl: getFailUrlHtml(spec.failedAtUrl),
       reasons: spec.failedExpectations
     });
+  }
+
+  function getFailUrlHtml(failedUrl){
+    return opts.logUrlOnFailure ? "<li>Failed Url: " + failedUrl + "</li>" : '';
   }
 
   function printSpec(spec) {
