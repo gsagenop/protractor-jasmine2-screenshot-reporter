@@ -179,6 +179,18 @@ This option will add the URL that a spec failed on to the report
 
 Default is <code>false</code>
 
+### Log Browser Console on failure (optional)
+
+This option will add the browser's console messages  on failed specs to the report
+
+<pre><code>var reporter = new HtmlScreenshotReporter({
+  configurationStrings: {
+    logBrowserConsoleOnFailure: true
+  }
+});</code></pre>
+
+Default is <code>false</code>
+
 ### Path Builder (optional)
 
 Function used to build custom paths for screenshots. For example:

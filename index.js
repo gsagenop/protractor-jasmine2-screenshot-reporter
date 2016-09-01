@@ -171,7 +171,8 @@ function Jasmine2ScreenShotReporter(opts) {
 
   var browserLogTemplate = _.template(
     '<ul>' +
-    '<li>Browser Logs: <%= browserLog %></li>' +
+    '<li>Browser Logs - [<a href="javascript:showhide(\'browserLog<%= id %>\')">show logs</a>]</li>' +
+    '<span style="display: none" id="browserLog<%= id %>" class="stacktrace"><%= browserLog %></span></li>' +
     '</ul>'
   );
 
@@ -376,6 +377,7 @@ function Jasmine2ScreenShotReporter(opts) {
     }
 
     return browserLogTemplate({
+      id: getUniqueSpecId(spec),
       browserLog: getBrowserLog(spec.browserLogs)
     });
   }
@@ -613,8 +615,8 @@ function Jasmine2ScreenShotReporter(opts) {
       });
 
 
+      // If failed, check for optional logging of url and browser console
       if(spec.status == 'failed'){
-        spec.browserLogs = [];
         if(opts.logUrlOnFailure) {
           if(spec.status == 'failed'){
             browserInstance.getCurrentUrl().then(function(url){
@@ -624,15 +626,9 @@ function Jasmine2ScreenShotReporter(opts) {
         }
 
         if(opts.logBrowserConsoleOnFailure) {
+          spec.browserLogs = [];
           browserInstance.manage().logs().get('browser').then(function(browserLogs) {
-            // console.log('Logs here: ' + browserLogs);
-            // browserLogs is an array of objects with level and message fields
-
-            spec.browserLogs.push(JSON.stringify(browserLogs));
-            browserInstance.sleep(1000).then(function(){
-              console.log('Browser logs: ' + spec.browserLogs);
-
-            });
+            spec.browserLogs.push(JSON.stringify(browserLogs, null, 2));
           });
         }
       }
