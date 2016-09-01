@@ -322,6 +322,7 @@ function Jasmine2ScreenShotReporter(opts) {
   opts.reportTitle = opts.hasOwnProperty('reportTitle') ? opts.reportTitle : 'Report';
   opts.cleanDestination = opts.hasOwnProperty('cleanDestination') ? opts.cleanDestination : true;
   opts.logUrlOnFailure = opts.hasOwnProperty('logUrlOnFailure') ? opts.logUrlOnFailure : false;
+  opts.logConsoleOnFailure = opts.hasOwnProperty('logConsoleOnFailure') ? opts.logConsoleOnFailure : false;
 
   // TODO: proper nesting -> no need for magic
 
@@ -585,15 +586,35 @@ function Jasmine2ScreenShotReporter(opts) {
           });
         });
       });
+
+
+      if(spec.status == 'failed'){
+        spec.browserLogs = [];
+        if(opts.logUrlOnFailure) {
+          if(spec.status == 'failed'){
+            browserInstance.getCurrentUrl().then(function(url){
+              spec.failedAtUrl = url;
+            })
+          }
+        }
+
+        if(opts.logConsoleOnFailure) {
+          browserInstance.manage().logs().get('browser').then(function(browserLogs) {
+            // console.log('Logs here: ' + browserLogs);
+            // browserLogs is an array of objects with level and message fields
+
+            spec.browserLogs.push(JSON.stringify(browserLogs));
+            browserInstance.sleep(1000).then(function(){
+              console.log('Browser logs: ' + spec.browserLogs);
+
+            });
+          });
+        }
+      }
     });
 
-    if(opts.logUrlOnFailure) {
-      if(spec.status == 'failed'){
-        browser.getCurrentUrl().then(function(url){
-          spec.failedAtUrl = url;
-        })
-      }
-    }
+
+
 
   };
 
